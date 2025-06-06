@@ -153,13 +153,13 @@ pub(crate) enum RawEventChannelMessageData {
 #[serde(rename_all = "camelCase")]
 pub struct BookTicker {
     #[serde(rename = "b")]
-    bid_price: Decimal,
+    pub bid_price: Decimal,
     #[serde(rename = "B")]
-    bid_quantity: Decimal,
+    pub bid_quantity: Decimal,
     #[serde(rename = "a")]
-    ask_price: Decimal,
+    pub ask_price: Decimal,
     #[serde(rename = "A")]
-    ask_quantity: Decimal,
+    pub ask_quantity: Decimal,
 }
 
 
