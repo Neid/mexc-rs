@@ -15,6 +15,7 @@ use crate::spot::ws::message::kline::{
     channel_message_to_spot_kline_message, RawKlineData, SpotKlineMessage,
 };
 use chrono::{DateTime, Utc};
+use rust_decimal::Decimal;
 
 use self::orderbook_update::{
     channel_message_to_spot_orderbook_update_message, OrderbookUpdateMessage, RawOrderData,
@@ -35,6 +36,7 @@ pub enum Message {
     Deals(SpotDealsMessage),
     Kline(SpotKlineMessage),
     OrderbookUpdate(OrderbookUpdateMessage),
+    BookTicker(BookTicker),
 }
 
 impl TryFrom<&RawMessage> for Message {
@@ -70,6 +72,9 @@ impl TryFrom<&RawMessage> for Message {
                             channel_message_to_spot_orderbook_update_message(raw_channel_message)
                                 .map_err(|_| ())?,
                         ))
+                    }
+                    RawEventChannelMessageData::BookTicker(book_ticker) => {
+                        Ok(Message::BookTicker(book_ticker.clone()))
                     }
                 },
             },
@@ -141,10 +146,27 @@ pub(crate) enum RawEventChannelMessageData {
         #[serde(rename = "e")]
         r#type: String,
     },
+    BookTicker(BookTicker)
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct BookTicker {
+    #[serde(rename = "b")]
+    bid_price: Decimal,
+    #[serde(rename = "B")]
+    bid_quantity: Decimal,
+    #[serde(rename = "a")]
+    ask_price: Decimal,
+    #[serde(rename = "A")]
+    ask_quantity: Decimal,
+}
+
 
 #[cfg(test)]
 mod tests {
+    use num::FromPrimitive;
+
     use super::*;
 
     #[test]
@@ -208,5 +230,37 @@ mod tests {
         let result: Result<RawChannelMessage, _> = serde_path_to_error::deserialize(deserializer);
         eprintln!("{:?}", result);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn raw_obook_ticker_data() {
+        let json = r#"
+            {"c":"spot@public.bookTicker.v3.api@SOLUSDT","d":{"A":"357.32","B":"691.97","a":"145.74","b":"145.72"},"s":"SOLUSDT","t":1749154079602}
+        "#;
+
+        let deserializer = &mut serde_json::Deserializer::from_str(json);
+
+        let result: Result<RawChannelMessage, _> = serde_path_to_error::deserialize(deserializer);
+        eprintln!("{:?}", result);
+        assert!(result.is_ok());
+
+        let book_ticker = BookTicker {
+            bid_price: Decimal::from_f64(145.72).unwrap(),
+            bid_quantity: Decimal::from_f64(691.97).unwrap(),
+            ask_price: Decimal::from_f64(145.74).unwrap(),
+            ask_quantity: Decimal::from_f64(357.32).unwrap(),
+        };
+
+        let data = result.unwrap().data;
+        assert!(matches!(
+            data,
+            RawChannelMessageData::Event(RawEventChannelMessageData::BookTicker(_))
+        ));
+
+        if let RawChannelMessageData::Event(RawEventChannelMessageData::BookTicker(book_ticker_data)) = data {
+            assert_eq!(book_ticker_data, book_ticker);
+        } else {
+            panic!("Expected BookTicker data");
+        }
     }
 }

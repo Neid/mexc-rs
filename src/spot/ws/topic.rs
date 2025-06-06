@@ -8,6 +8,8 @@ pub enum Topic {
     Deals(DealsTopic),
     Kline(KlineTopic),
     Depth(DepthTopic),
+    BookTicker(String),
+    BookTickerBatch(String)
 }
 
 impl Topic {
@@ -19,6 +21,8 @@ impl Topic {
             Topic::Deals(_) => false,
             Topic::Kline(_) => false,
             Topic::Depth(_) => false,
+            Topic::BookTicker(_) => false,
+            Topic::BookTickerBatch(_) => false,
         }
     }
 
@@ -39,6 +43,12 @@ impl Topic {
             Topic::Depth(depth_topic) => format!(
                 "spot@public.increase.depth.v3.api@{symbol}",
                 symbol = depth_topic.symbol
+            ),
+            Topic::BookTicker(symbol) => format!(
+                "spot@public.bookTicker.v3.api@{symbol}"
+            ),
+            Topic::BookTickerBatch(symbol) => format!(
+                "spot@public.bookTicker.batch.v3.api.pb@{symbol}"
             ),
         }
     }
