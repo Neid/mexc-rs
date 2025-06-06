@@ -795,9 +795,9 @@ fn spawn_websocket_receiver_task(
                     let raw_message = match serde_json::from_str::<message::RawMessage>(&text) {
                         Ok(x) => x,
                         Err(err) => {
-                            cancellation_token.cancel();
+                            //cancellation_token.cancel();
                             tracing::error!("Failed to deserialize message: {}\njson: {}", err, &text);
-                            break;
+                            continue;
                         }
                     };
                     let mexc_message_result: Result<message::Message, ()> = (&raw_message).try_into();
