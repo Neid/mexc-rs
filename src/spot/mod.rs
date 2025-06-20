@@ -70,7 +70,7 @@ impl MexcSpotApiTrait for MexcSpotApiClient {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct MexcSpotApiClientWithAuthentication {
     endpoint: MexcSpotApiEndpoint,
     reqwest_client: reqwest::Client,
