@@ -28,8 +28,27 @@ pub struct SpotDeal {
     pub price: Decimal,
     pub quantity: Decimal,
     pub timestamp: DateTime<Utc>,
-    pub trade_type: i32,
+    pub trade_type: SpotDealTradeType,
 }
+
+#[derive(Debug)]
+#[repr(i32)]
+pub enum SpotDealTradeType {
+    Buy = 1,
+    Sell = 2,
+    Unknown(i32),
+}
+
+impl From<i32> for SpotDealTradeType {
+    fn from(value: i32) -> Self {
+        match value {
+            1 => SpotDealTradeType::Buy,
+            2 => SpotDealTradeType::Sell,
+            _ => SpotDealTradeType::Unknown(value),
+        }
+    }
+}
+
 
 #[derive(Debug, thiserror::Error)]
 pub enum ChannelMessageToSpotDealsMessageError {
@@ -57,7 +76,7 @@ pub(crate) fn channel_message_to_spot_deals_message(
             price: deal.price,
             quantity: deal.quantity,
             timestamp: deal.timestamp,
-            trade_type: deal.trade_type,
+            trade_type: deal.trade_type.into(),
         })
         .collect();
 
