@@ -22,7 +22,7 @@ pub struct SpotDealsMessage {
     pub deals: Vec<SpotDeal>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SpotDeal {
     pub symbol: String,
     pub price: Decimal,
@@ -31,7 +31,7 @@ pub struct SpotDeal {
     pub trade_type: SpotDealTradeType,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(i32)]
 pub enum SpotDealTradeType {
     Buy = 1,
