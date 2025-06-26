@@ -5,6 +5,7 @@ use std::fmt::{Display, Formatter};
 
 pub mod account_information;
 pub mod avg_price;
+pub mod book_ticker;
 pub mod cancel_all_open_orders_on_a_symbol;
 pub mod cancel_order;
 pub mod create_user_data_stream;
