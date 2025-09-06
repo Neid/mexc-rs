@@ -132,6 +132,7 @@ impl Subscribe for MexcSpotWebsocketClient {
             let sendable_message = SendableMessage::Subscription(params);
 
             let tx = acquired_ws.websocket_entry.message_tx.read().await;
+            tracing::debug!("Sending subscription message: {:?}", sendable_message);
             tx.send(sendable_message).await?;
 
             let mut topics = acquired_ws.websocket_entry.topics.write().await;
