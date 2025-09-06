@@ -45,7 +45,7 @@ impl Topic {
                 symbol = depth_topic.symbol
             ),
             Topic::BookTicker(symbol) => format!(
-                "spot@public.bookTicker.v3.api@{symbol}"
+                "spot@public.aggre.bookTicker.v3.api.pb@10ms@{symbol}"
             ),
             Topic::BookTickerBatch(symbol) => format!(
                 "spot@public.bookTicker.batch.v3.api.pb@{symbol}"
