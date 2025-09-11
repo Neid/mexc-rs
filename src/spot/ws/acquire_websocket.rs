@@ -447,6 +447,7 @@ async fn create_private_websocket(
         "{}?listenKey={}",
         endpoint_str, &user_data_stream_output.listen_key
     );
+    tracing::debug!("Connecting to websocket at url: {}", ws_url);
 
     let (ws_stream, _) = tokio_tungstenite::connect_async(&ws_url).await?;
     let (ws_tx, ws_rx) = ws_stream.split();
@@ -505,6 +506,8 @@ async fn create_public_websocket(
     inner: &mut Inner,
 ) -> Result<Arc<WebsocketEntry>, CreatePublicWebsocketError> {
     let endpoint_str = this.ws_endpoint.to_string();
+
+    tracing::debug!("Connecting to websocket at url: {}", endpoint_str);
 
     let (ws_stream, _) = tokio_tungstenite::connect_async(&endpoint_str).await?;
     let (ws_tx, ws_rx) = ws_stream.split();
@@ -666,7 +669,7 @@ fn spawn_websocket_sender_task(
                         }
                     };
                     let json = serde_json::to_string(&message).expect("Failed to serialize message");
-                    let message = Message::Text(json);
+                    let message = Message::Text(json.into());
 
                     match ws_tx.send(message).await {
                         Ok(_) => {}
@@ -785,12 +788,18 @@ fn spawn_websocket_receiver_task(
                     };
 
                     let text = match message {
-                        Message::Text(text) => text,
-                        _ => {
-                            tracing::debug!("Received non-text message: {:?}", message);
+                        Message::Text(text) => text.to_string(),
+                        Message::Binary(bin) => {
+                            tracing::debug!("Received binary message from websocket: {:?}", bin);
+                            String::from_utf8_lossy(bin.as_ref()).to_string()
+
+                        }
+                        other => {
+                            tracing::debug!("Received non text/binary message: {:?}", other);
                             continue;
                         }
                     };
+                    tracing::debug!("Received text message from websocket: {}", text);
 
                     let raw_message = match serde_json::from_str::<message::RawMessage>(&text) {
                         Ok(x) => x,
