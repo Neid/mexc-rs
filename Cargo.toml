@@ -47,3 +47,5 @@ tokio-util = "0.7.16"
 async-channel = "2.5"
 serde_with = "3.14"
 uuid = { version = "1.18.1", features = ["v4"] }
+mexc-pb = { path = "../mexc-pb" }
+prost = "0.14.1"
