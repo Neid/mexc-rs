@@ -826,6 +826,7 @@ fn spawn_websocket_receiver_task(
                                 Ok(pb_message) => {
 
                                     if let Some(body) = pb_message.body {
+                                        tracing::trace!("Received protobuf message from websocket: {:?}", body);
                                         match body {
                                             Body::PublicDeals(_public_deals_v3_api) => todo!("PublicDeals"),
                                             Body::PublicIncreaseDepths(_public_increase_depths_v3_api) => todo!("PublicIncreaseDepths"),
