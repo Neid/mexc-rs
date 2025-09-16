@@ -11,8 +11,6 @@ use async_channel::Sender;
 use async_trait::async_trait;
 use futures::stream::{SplitSink, SplitStream};
 use futures::{SinkExt, StreamExt};
-use rust_decimal::Decimal;
-use std::str::FromStr;
 use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
@@ -24,7 +22,6 @@ use uuid::Uuid;
 
 use prost::Message as ProstMessage;
 use mexc_pb::pb::websocket::PushDataV3ApiWrapper;
-use mexc_pb::pb::websocket::push_data_v3_api_wrapper::Body;
 
 #[derive(Debug)]
 pub(crate) struct AcquireWebsocketsForTopicsParams {
@@ -796,7 +793,7 @@ fn spawn_websocket_receiver_task(
                     match message {
                         Message::Text(text) => {
                             let text = text.to_string();
-                            //tracing::debug!("Received text message from websocket: {}", text);
+                            tracing::trace!("Received text message from websocket: {}", text);
 
                             let raw_message = match serde_json::from_str::<message::RawMessage>(&text) {
                                 Ok(x) => x,
@@ -811,74 +808,20 @@ fn spawn_websocket_receiver_task(
                                 continue;
                             };
 
-                            match broadcast_tx.send(Arc::new(mexc_message)) {
-                                Ok(_) => {}
-                                Err(err) => {
-                                    // cancellation_token.cancel();
-                                    tracing::error!("Failed to broadcast message: {}", err);
-                                    break;
-                                }
-                            }
+                            unimplemented!("Mexc switched to protobuf, so this branch is not used anymore");
                         }
                         Message::Binary(bin) => {
-                            //tracing::debug!("Received binary message from websocket: {:?}", bin);
+                            tracing::trace!("Received binary message from websocket: {:?}", bin);
                             match PushDataV3ApiWrapper::decode(bin) {
                                 Ok(pb_message) => {
 
-                                    if let Some(body) = pb_message.body {
-                                        tracing::trace!("Received protobuf message from websocket: {:?}", body);
-                                        match body {
-                                            Body::PublicDeals(_public_deals_v3_api) => todo!("PublicDeals"),
-                                            Body::PublicIncreaseDepths(_public_increase_depths_v3_api) => todo!("PublicIncreaseDepths"),
-                                            Body::PublicLimitDepths(_public_limit_depths_v3_api) => todo!("PublicLimitDepths"),
-                                            Body::PrivateOrders(_private_orders_v3_api) => todo!("PrivateOrders"),
-                                            Body::PublicBookTicker(book_ticker) => {
-                                                let mexc_message = message::Message::BookTicker(message::BookTicker {
-                                                    bid_price: Decimal::from_str(&book_ticker.bid_price).unwrap_or_default(),
-                                                    bid_quantity: Decimal::from_str(&book_ticker.bid_quantity).unwrap_or_default(),
-                                                    ask_price: Decimal::from_str(&book_ticker.ask_price).unwrap_or_default(),
-                                                    ask_quantity: Decimal::from_str(&book_ticker.ask_quantity).unwrap_or_default(),
-                                                });
-                                                match broadcast_tx.send(Arc::new(mexc_message)) {
-                                                    Ok(_) => {}
-                                                    Err(err) => {
-                                                        // cancellation_token.cancel();
-                                                        tracing::error!("Failed to broadcast message: {}", err);
-                                                        break;
-                                                    }
-                                                }
-                                            },
-                                            Body::PrivateDeals(_private_deals_v3_api) => todo!("PrivateDeals"),
-                                            Body::PrivateAccount(_private_account_v3_api) => todo!("PrivateAccount"),
-                                            Body::PublicSpotKline(_public_spot_kline_v3_api) => todo!("PublicSpotKline"),
-                                            Body::PublicMiniTicker(_public_mini_ticker_v3_api) => todo!("PublicMiniTicker"),
-                                            Body::PublicMiniTickers(_public_mini_tickers_v3_api) => todo!("PublicMiniTickers"),
-                                            Body::PublicBookTickerBatch(_public_book_ticker_batch_v3_api) => todo!("PublicBookTickerBatch"),
-                                            Body::PublicIncreaseDepthsBatch(_public_increase_depths_batch_v3_api) => todo!("PublicIncreaseDepthsBatch"),
-                                            Body::PublicAggreDepths(_public_aggre_depths_v3_api) => todo!("PublicAggreDepths"),
-                                            Body::PublicAggreDeals(_public_aggre_deals_v3_api) => todo!("PublicAggreDeals"),
-                                            Body::PublicAggreBookTicker(book_ticker) => {
-                                                let mexc_message = message::Message::BookTicker(message::BookTicker {
-                                                    bid_price: Decimal::from_str(&book_ticker.bid_price).unwrap_or_default(),
-                                                    bid_quantity: Decimal::from_str(&book_ticker.bid_quantity).unwrap_or_default(),
-                                                    ask_price: Decimal::from_str(&book_ticker.ask_price).unwrap_or_default(),
-                                                    ask_quantity: Decimal::from_str(&book_ticker.ask_quantity).unwrap_or_default(),
-                                                });
-                                                match broadcast_tx.send(Arc::new(mexc_message)) {
-                                                    Ok(_) => {}
-                                                    Err(err) => {
-                                                        // cancellation_token.cancel();
-                                                        tracing::error!("Failed to broadcast message: {}", err);
-                                                        break;
-                                                    }
-                                                }
-                                            },
+                                    match broadcast_tx.send(Arc::new(pb_message)) {
+                                        Ok(_) => {}
+                                        Err(err) => {
+                                            // cancellation_token.cancel();
+                                            tracing::error!("Failed to broadcast message: {}", err);
+                                            break;
                                         }
-                                    }
-                                    else {
-                                        //cancellation_token.cancel();
-                                        tracing::error!("Received protobuf message without body");
-                                        continue;
                                     }
                                 }
                                 Err(err) => {

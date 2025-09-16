@@ -36,7 +36,8 @@ pub struct MexcSpotWebsocketClient {
     inner: Arc<RwLock<Inner>>,
     ws_endpoint: Arc<MexcWebsocketEndpoint>,
     spot_api_endpoint: Arc<MexcSpotApiEndpoint>,
-    broadcast_tx: tokio::sync::broadcast::Sender<Arc<message::Message>>,
+    //broadcast_tx: tokio::sync::broadcast::Sender<Arc<message::Message>>,
+    broadcast_tx: tokio::sync::broadcast::Sender<Arc<mexc_pb::pb::websocket::PushDataV3ApiWrapper>>,
 }
 
 impl MexcSpotWebsocketClient {
