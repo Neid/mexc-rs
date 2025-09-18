@@ -32,7 +32,7 @@ impl Topic {
             Topic::AccountOrders => "spot@private.orders.v3.api.pb".to_string(),
             Topic::AccountUpdate => "spot@private.account.v3.api.pb".to_string(),
             Topic::Deals(deals_topic) => format!(
-                "sspot@public.aggre.deals.v3.api.pb@10ms@{symbol}",
+                "spot@public.aggre.deals.v3.api.pb@10ms@{symbol}",
                 symbol = deals_topic.symbol
             ),
             Topic::Kline(kline_topic) => format!(
@@ -41,7 +41,7 @@ impl Topic {
                 interval = kline_topic.interval.as_ref()
             ),
             Topic::Depth(depth_topic) => format!(
-                "sspot@public.aggre.depth.v3.api.pb@10@{symbol}",
+                "spot@public.aggre.depth.v3.api.pb@10@{symbol}",
                 symbol = depth_topic.symbol
             ),
             Topic::BookTicker(symbol) => format!(
